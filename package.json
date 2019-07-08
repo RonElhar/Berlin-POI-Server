@@ -1,0 +1,23 @@
+{
+  "name": "ass3.2",
+  "version": "1.0.0",
+  "main": "app3.2.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.0",
+    "fast-xml-parser": "^3.12.16",
+    "fastpriorityqueue": "^0.6.3",
+    "jsonwebtoken": "^8.5.1",
+    "tedious": "^6.1.1",
+    "tedious-connection-pool": "^1.0.5",
+    "xml2js": "^0.4.19"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
