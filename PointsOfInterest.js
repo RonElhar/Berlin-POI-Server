@@ -77,6 +77,27 @@ exports.saveCritic = function (req, res) {
         });
 };
 
+exports.getCritics = (req, res) => {
+    var interestPointName = req.params.interestPointName;
+    DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + interestPointName + "'")
+        .then(function (poiID) {
+            DButilsAzure.execQuery("SELECT criticContent FROM critics WHERE interestPointID = '" + poiID[0].interestPointID + "'")
+                .then(function (criticsRes) {
+                    let critics = [];
+                    criticsRes.forEach(obj => {
+                        if (obj.criticContent != "") {
+                            critics.push(obj.criticContent)
+                        }
+                    })
+                    res.send(JSON.stringify(critics));
+                })
+        })
+        .catch(function (err) {
+            console.log(err);
+            res.status(400).send("invalid point name")
+        })
+}
+
 exports.getRandomPopular = (req, res) => {
     DButilsAzure.execQuery("SELECT interestPointName, pointImage, averageRank FROM interestPoints WHERE averageRank > 3")
         .then(function (pointsRes) {
@@ -84,7 +105,7 @@ exports.getRandomPopular = (req, res) => {
                 return a.averageRank > b.averageRank;
             });
             for (let i = 0; i < pointsRes.length; i++) {
-                if (pointsRes[i].averageRank>3.5)
+                if (pointsRes[i].averageRank > 3.5)
                     q.add(pointsRes[i]);
             }
             let interestPointsDict = {};

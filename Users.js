@@ -27,15 +27,15 @@ exports.login = function (req, res) {
     var password = req.body.password;
     DButilsAzure.execQuery("SELECT userId FROM users WHERE userName ='" + userName + "' AND password = '" + password + "'")
         .then(function (idRes) {
-                payload = {id: idRes[0]["userId"], name: userName, admin: false};
-                options = {expiresIn: "1d"};
-                const token = jwt.sign(payload, secret, options);
-                res.send(token);
-            }
+            payload = { id: idRes[0]["userId"], name: userName, admin: false };
+            options = { expiresIn: "1d" };
+            const token = jwt.sign(payload, secret, options);
+            res.send(token);
+        }
         ).catch(function (err) {
-        console.log(err);
-        res.status(400).send("Invalid user name or password")
-    });
+            console.log(err);
+            res.status(400).send("Invalid user name or password")
+        });
 };
 
 function alphanumeric(inputtxt) {
@@ -64,18 +64,18 @@ function parseXml(filePath) {
         if (result != null) {
             res = result;
         }
-        else{
-        console.log(error)
+        else {
+            console.log(error)
         }
     })
     return res
 }
 
-exports.getCountries = function(req,res){
+exports.getCountries = function (req, res) {
     var countries = parseXml("countries.xml");
     countries = countries["Countries"]["Country"];
-    if (countries!=null){
-    res.send(JSON.stringify(countries));
+    if (countries != null) {
+        res.send(JSON.stringify(countries));
     }
 }
 
@@ -127,37 +127,37 @@ exports.register = function (req, res) {
     }
     var verificationAnswer = req.body.verificationAnswer;
     let userName_exist = false;
-    DButilsAzure.execQuery("SELECT userId FROM users WHERE userName = '"+userName+"'")
+    DButilsAzure.execQuery("SELECT userId FROM users WHERE userName = '" + userName + "'")
         .then(function (res) {
-            if (res!=null){
+            if (res != null) {
                 userName_exist = true;
             }
         });
-    if (userName_exist){
+    if (userName_exist) {
         console.log(res);
         res.status(400).send("User name is taken");
         return;
     }
     const query = "INSERT INTO users ("
-    + "userName, "
-    + "password, "
-    + "firstName, "
-    + "lastName, "
-    + "city, "
-    + "country, "
-    + "email, "
-    + "lastPointSavedId1, "
-    + "lastPointSavedId2)"
-    + "VALUES (" +
-    "'" + userName + "'," +
-    "'" + password + "'," +
-    "'" + firstName + "'," +
-    "'" + lastName + "'," +
-    "'" + city + "'," +
-    "'" + country + "'," +
-    "'" + email + "'," +
-    "'" + lastPointSavedId1 + "'," +
-    "'" + lastPointSavedId2 + "');"
+        + "userName, "
+        + "password, "
+        + "firstName, "
+        + "lastName, "
+        + "city, "
+        + "country, "
+        + "email, "
+        + "lastPointSavedId1, "
+        + "lastPointSavedId2)"
+        + "VALUES (" +
+        "'" + userName + "'," +
+        "'" + password + "'," +
+        "'" + firstName + "'," +
+        "'" + lastName + "'," +
+        "'" + city + "'," +
+        "'" + country + "'," +
+        "'" + email + "'," +
+        "'" + lastPointSavedId1 + "'," +
+        "'" + lastPointSavedId2 + "');"
     DButilsAzure.execQuery(query)
         .then(function (result) {
             DButilsAzure.execQuery("SELECT userId FROM users WHERE userName = '" + userName + "'")
@@ -194,9 +194,9 @@ exports.register = function (req, res) {
                     })
 
                 }).then(function (result) {
-                registerBool = true;
-                res.send(JSON.stringify(registerBool))
-            })
+                    registerBool = true;
+                    res.send(JSON.stringify(registerBool))
+                })
                 .catch(function (err) {
                     console.log(err);
                     res.status(400).send(err);
@@ -215,9 +215,9 @@ exports.retrievePassQuest = function (req, res) {
             var userId = userRes[0]["userId"];
             DButilsAzure.execQuery("SELECT question FROM usersVerificationQuestions WHERE userId = '" + userId + "'")
                 .then(function (verificationQuestionsRes) {
-                    var verificationQuestionsDict = {};
+                    var verificationQuestionsDict = [];
                     verificationQuestionsRes.forEach(function (element) {
-                        verificationQuestionsDict[userName] = element["question"];
+                        verificationQuestionsDict.push(element["question"]);
                     });
                     res.send(JSON.stringify(verificationQuestionsDict));
                 })
@@ -241,11 +241,10 @@ exports.retrievePassword = function (req, res) {
                     verificationQuestionsRes.forEach(function (element) {
                         verificationQuestionsDict[element["question"]] = element["answer"];
                     });
-                    if (verificationQuestionsDict[question] == answer + " ")
-                    {
+                    if (verificationQuestionsDict[question] == answer) {
                         DButilsAzure.execQuery("SELECT password FROM users WHERE userName = '" + userName + "'")
                             .then(function (passRes) {
-                                res.send(JSON.stringify(passRes[0]["password"]));
+                                res.send(passRes[0]["password"]);
                             })
                     }
                     else {
@@ -284,22 +283,25 @@ exports.saveFavourite = function (req, res) {
     var saveBool = false;
     var userId = req.decoded.id;
     var interestPointNames = req.body.interestPointNames;
-    interestPointNames.forEach(function (pElement) {
-        DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + pElement + "'")
-            .then(function (interestPointRes) {
-                var interestPointId = interestPointRes[0]["interestPointID"];
-                DButilsAzure.execQuery("INSERT INTO userSavedPoints ("
-                    + "interestPointID, "
-                    + "userId)"
-                    + "VALUES (" +
-                    "'" + interestPointId + " '," +
-                    "'" + userId + "');")
-            })
-            .catch(function (err) {
-                console.log(err);
-                res.status(400).send("no such point");
+    DButilsAzure.execQuery("DELETE from userSavedPoints WHERE userId = '" + userId + "'")
+        .then(function () {
+            interestPointNames.forEach(function (pElement) {
+                DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + pElement + "'")
+                    .then(function (interestPointRes) {
+                        var interestPointId = interestPointRes[0]["interestPointID"];
+                        DButilsAzure.execQuery("INSERT INTO userSavedPoints ("
+                            + "interestPointID, "
+                            + "userId)"
+                            + "VALUES (" +
+                            "'" + interestPointId + " '," +
+                            "'" + userId + "');")
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                        res.status(400).send("no such point");
+                    });
             });
-    });
+        });
     var lastSavedPoint1 = interestPointNames.slice(-1)[0];
     if (interestPointNames.length > 1) {
         var lastSavedPoint2 = interestPointNames.slice(-2)[0];
@@ -345,6 +347,7 @@ exports.saveFavourite = function (req, res) {
                         }
                     })
             })
+
             .catch(function (err) {
                 console.log(err);
                 res.status(400).send("invalid favourite");
@@ -390,23 +393,23 @@ exports.getRecommended = (req, res) => {
             query += "categoryID = '" + String(interestCategories[i].categoryID) + "'";
             DButilsAzure.execQuery(query)
                 .then(function (pointsRes) {
-                        let q = new FastPriorityQueue(function (a, b) {
-                            return a.averageRank > b.averageRank;
-                        });
-                        for (let i = 0; i < pointsRes.length; i++) {
-                            q.add(pointsRes[i]);
-                        }
-                        let interestPointsDict = {};
-                        q.forEach(function (element) {
-                            interestPointsDict[element["interestPointName"]] = element["pointImage"];
-                        });
-                        res.send(JSON.stringify(interestPointsDict));
-                        // res.send(JSON.stringify(pointsRes));
+                    let q = new FastPriorityQueue(function (a, b) {
+                        return a.averageRank > b.averageRank;
+                    });
+                    for (let i = 0; i < pointsRes.length; i++) {
+                        q.add(pointsRes[i]);
                     }
+                    let interestPointsDict = {};
+                    q.forEach(function (element) {
+                        interestPointsDict[element["interestPointName"]] = element["pointImage"];
+                    });
+                    res.send(JSON.stringify(interestPointsDict));
+                    // res.send(JSON.stringify(pointsRes));
+                }
                 ).catch(function (err) {
-                console.log(err);
-                res.send(err)
-            })
+                    console.log(err);
+                    res.send(err)
+                })
         })
         .catch(function (err) {
             console.log(err);

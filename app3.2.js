@@ -28,6 +28,9 @@ app.get("/getPointByName/:interestPointName", interestPoints.getPointByName); //
 
 app.get("/getRandomPopularPoints", interestPoints.getRandomPopular);//V
 
+app.get("/getPointCritics/:interestPointName", interestPoints.getCritics);//V
+
+
 app.get("/getCountries",users.getCountries)
 
 app.post('/register', users.register);//V
