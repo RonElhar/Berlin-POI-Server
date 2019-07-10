@@ -77,6 +77,18 @@ exports.saveCritic = function (req, res) {
         });
 };
 
+exports.increaseViews = (req, res) => {
+    var interestPointName = req.body.interestPointName
+    var numOfViews = req.body.numOfViews + 1;
+    DButilsAzure.execQuery("UPDATE interestPoints SET  numOfViews = '" + numOfViews + "'" + " WHERE interestPointName = '" + interestPointName + "'")
+        .then(function () {
+            res.send(true);
+        })
+        .catch(function (error) {
+            console.log(error);
+        })
+}
+
 exports.getCritics = (req, res) => {
     var interestPointName = req.params.interestPointName;
     DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + interestPointName + "'")

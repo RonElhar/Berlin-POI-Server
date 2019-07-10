@@ -22,6 +22,8 @@ app.get("/getCategoryPoints/:categoryName", categories.getPointsOfCategory);//v
 
 app.get("/getAllPoints", interestPoints.getAllPoints);//v
 
+app.post("/increaseViews", interestPoints.increaseViews);//v
+
 app.get("/getPointProperties/:interestPointName", interestPoints.getPointProperties);//V
 
 app.get("/getPointByName/:interestPointName", interestPoints.getPointByName); ///V
