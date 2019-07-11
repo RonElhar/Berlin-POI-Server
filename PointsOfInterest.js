@@ -40,6 +40,13 @@ exports.saveCritic = function (req, res) {
     var userId = req.decoded.id;
     var rank = req.body.rank;
     var description = req.body.description;
+    var date = new Date();
+    date = date.getUTCFullYear() + '-' +
+        ('00' + (date.getUTCMonth() + 1)).slice(-2) + '-' +
+        ('00' + date.getUTCDate()).slice(-2) + ' ' +
+        ('00' + date.getUTCHours()).slice(-2) + ':' +
+        ('00' + date.getUTCMinutes()).slice(-2) + ':' +
+        ('00' + date.getUTCSeconds()).slice(-2);
     DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + interestPointName + "'")
         .then(function (pointRes) {
             var interestPointId = pointRes[0]["interestPointID"];
@@ -47,12 +54,14 @@ exports.saveCritic = function (req, res) {
                 + "interestPointID, "
                 + "userID, "
                 + "rank, "
-                + "criticContent)"
+                + "criticContent,"
+                + "date)"
                 + "VALUES (" +
                 "'" + interestPointId + " '," +
                 "'" + userId + " '," +
                 "'" + rank + " '," +
-                "'" + description + "');")
+                "'" + description + "'," +
+                "'" + date + " '" + ");")
                 .then(function (result) {
                     DButilsAzure.execQuery("SELECT rank FROM critics WHERE interestPointID = '" + interestPointId + "'")
                         .then(function (criticsRes) {
@@ -93,12 +102,12 @@ exports.getCritics = (req, res) => {
     var interestPointName = req.params.interestPointName;
     DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + interestPointName + "'")
         .then(function (poiID) {
-            DButilsAzure.execQuery("SELECT criticContent FROM critics WHERE interestPointID = '" + poiID[0].interestPointID + "'")
+            DButilsAzure.execQuery("SELECT criticContent,date FROM critics WHERE interestPointID = '" + poiID[0].interestPointID + "'")
                 .then(function (criticsRes) {
                     let critics = [];
                     criticsRes.forEach(obj => {
                         if (obj.criticContent != "") {
-                            critics.push(obj.criticContent)
+                            critics.push([obj.criticContent, obj.date])
                         }
                     })
                     res.send(JSON.stringify(critics));
