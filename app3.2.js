@@ -42,7 +42,7 @@ app.post('/retrievePassword', users.retrievePassword);//V
 
 app.get("/private/getLastSavedPoints/", users.getLastSaved);//v
 
-app.post('/private/saveFavouritePoints', users.saveFavouritesPositions);//v
+app.post('/private/saveFavouritePoints', users.saveFavourite);//v
 
 app.get("/private/getUserFavouritePoints", users.getFavourite);//v
 
