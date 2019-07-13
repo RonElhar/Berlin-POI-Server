@@ -355,23 +355,99 @@ exports.saveFavourite = function (req, res) {
     }
 };
 
+exports.saveFavouritesPositions = function (req, res) {
+    var saveBool = false;
+    var userId = req.decoded.id;
+    var favPos = req.body.favPos;
+    DButilsAzure.execQuery("DELETE from userSavedPoints WHERE userId = '" + userId + "'")
+        .then(function () {
+            Object.keys(favPos).forEach(function (name) {
+                DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + name + "'")
+                    .then(function (interestPointRes) {
+                        var interestPointId = interestPointRes[0]["interestPointID"];
+                        DButilsAzure.execQuery("INSERT INTO userSavedPoints ("
+                            + "interestPointID, "
+                            + "userId, "
+                            + "position)"
+                            + "VALUES (" +
+                            "'" + interestPointId + " '," +
+                            "'" + userId + " '," +
+                            "'" + favPos[name] + "');")
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                        res.status(400).send("no such point");
+                    });
+            });
+        });
+    if (Object.keys(favPos).length > 0) {
+        var lastSavedPoint1 = Object.keys(favPos).slice(-1)[0];
+        query = "SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + lastSavedPoint1 + "'";
+        if (Object.keys(favPos).length > 1) {
+            var lastSavedPoint2 = Object.keys(favPos).slice(-2)[0];
+            query += " OR interestPointName = '" + lastSavedPoint2 + "'";
+        }
+        DButilsAzure.execQuery(query)
+            .then(function (savedInterestPointRes) {
+                var lastSavedPointId1 = savedInterestPointRes[0]["interestPointID"];
+                if (Object.keys(favPos).length > 1) {
+                    var lastSavedPointId2 = savedInterestPointRes[1]["interestPointID"];
+                }
+                else{
+                    var lastSavedPointId2 = 0;
+                }
+                DButilsAzure.execQuery("UPDATE users SET lastPointSavedId1 = '" + lastSavedPointId1 + "' WHERE userId = '" + userId + "'")
+                    .then(function (result) {
+                        DButilsAzure.execQuery("UPDATE users SET lastPointSavedId2 = '" + lastSavedPointId2 + "' WHERE userId = '" + userId + "'")
+                            .then(function (result) {
+                                saveBool = true;
+                                res.send(JSON.stringify(saveBool));
+                            })
+                    })
+            })
+            .catch(function (err) {
+                console.log(err);
+                res.status(400).send("invalid favourite");
+            });
+    } else {
+        DButilsAzure.execQuery("SELECT interestPointID FROM interestPoints WHERE interestPointName = '" + lastSavedPoint1 + "'")
+            .then(function (savedInterestPointRes) {
+                var lastSavedPointId1 = 0;
+                var lastSavedPointId2 = 0;
+                DButilsAzure.execQuery("UPDATE users SET lastPointSavedId1 = '" + lastSavedPointId1 + "' WHERE userId = '" + userId + "'")
+                    .then(function (result) {
+                        DButilsAzure.execQuery("UPDATE users SET lastPointSavedId2 = '" + lastSavedPointId2 + "' WHERE userId = '" + userId + "'")
+                            .then(function (result) {
+                                saveBool = true;
+                                res.send(JSON.stringify(saveBool));
+                            })
+                    })
+            })
+
+            .catch(function (err) {
+                console.log(err);
+                res.status(400).send("invalid favourite");
+            });
+    }
+};
+
 exports.getFavourite = (req, res) => {
     var userId = req.decoded.id;
     var interestPointsDict = {};
-    DButilsAzure.execQuery("SELECT interestPointID FROM userSavedPoints WHERE userId = '" + userId + "'")
+    DButilsAzure.execQuery("SELECT interestPointID, position FROM userSavedPoints WHERE userId = '" + userId + "'")
         .then(function (pointsRes) {
             var query = "SELECT interestPointName, pointImage, categoryID, averageRank FROM interestPoints WHERE interestPointID = '" + pointsRes[0]["interestPointID"] + "'";
-            pointsRes.forEach(function (element) {
-                if (element !== pointsRes[0]) {
-                    query += " OR interestPointID = '" + element["interestPointID"] + "'";
-                }
-            });
+            for (let i = 1; i < pointsRes.length; i++) {
+                element = pointsRes[i];
+                query += " OR interestPointID = '" + element["interestPointID"] + "'";
+            }
             DButilsAzure.execQuery(query)
                 .then(function (pointsDetailsRes) {
-                    pointsDetailsRes.forEach(function (element) {
-                        pointDetails = [element["pointImage"], element["categoryID"], element["averageRank"]];
+                    for (let i = 0; i < pointsDetailsRes.length; i++) {
+                        element = pointsDetailsRes[i];
+                        pointDetails = [element["pointImage"], element["categoryID"], element["averageRank"], pointsRes[i]["position"]];
                         interestPointsDict[element["interestPointName"]] = pointDetails;
-                    });
+                    }
                     res.send(JSON.stringify(interestPointsDict));
                 })
         })

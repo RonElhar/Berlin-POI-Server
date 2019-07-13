@@ -32,7 +32,6 @@ app.get("/getRandomPopularPoints", interestPoints.getRandomPopular);//V
 
 app.get("/getPointCritics/:interestPointName", interestPoints.getCritics);//V
 
-
 app.get("/getCountries",users.getCountries)
 
 app.post('/register', users.register);//V
@@ -43,7 +42,7 @@ app.post('/retrievePassword', users.retrievePassword);//V
 
 app.get("/private/getLastSavedPoints/", users.getLastSaved);//v
 
-app.post('/private/saveFavouritePoints', users.saveFavourite);//v
+app.post('/private/saveFavouritePoints', users.saveFavouritesPositions);//v
 
 app.get("/private/getUserFavouritePoints", users.getFavourite);//v
 
