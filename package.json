@@ -5,7 +5,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "express": "^4.17.0",
+    "express": "^4.17.3",
     "fast-xml-parser": "^3.12.16",
     "fastpriorityqueue": "^0.6.3",
     "jsonwebtoken": "^8.5.1",
